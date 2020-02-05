@@ -4,13 +4,13 @@ import hashlib
 import requests
 
 from ckan import model
-from ckan.lib.navl.validators import ignore_empty, not_empty
+from ckan.lib.navl.validators import not_empty
 
 from ckanext.harvest.model import HarvestObject
 from ckanext.harvest.model import HarvestObjectExtra as HOExtra
 import ckanext.harvest.queue as queue
 
-from ckanext.geodatagov.harvesters.base import GeoDataGovWAFHarvester, validate_profiles
+from ckanext.geodatagov.harvesters.base import GeoDataGovWAFHarvester
 
 
 class WAFCollectionHarvester(GeoDataGovWAFHarvester):
@@ -69,7 +69,7 @@ class WAFCollectionHarvester(GeoDataGovWAFHarvester):
         try:
             response = requests.get(source_url, timeout=60)
             content = response.content
-        except Exception, e:
+        except Exception as e:
             self._save_gather_error('Unable to get content for URL: %s: %r' % \
                                         (source_url, e),harvest_job)
             return None

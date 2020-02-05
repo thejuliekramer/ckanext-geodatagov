@@ -3,7 +3,6 @@ import sys
 import datetime
 import urlparse
 import urllib
-import cgi
 import tempfile
 import java.lang.System as System
 import java.lang.Class as Class
@@ -13,7 +12,6 @@ import javax.xml.transform.TransformerConfigurationException as \
     TransformerConfigurationException
 import java.sql.DriverManager as DriverManager
 import java.sql.SQLException as SQLException
-import javax.xml.transform.Transformer as Transformer
 import javax.xml.transform.TransformerFactory as TransformerFactory
 import javax.xml.transform.TransformerException as TransformerException
 import javax.xml.transform.stream.StreamResult as StreamResult
@@ -28,14 +26,14 @@ logging.basicConfig(filename='errors.log',
 
 def usage():
     ''' Usage info '''
-    print """
+    print("""
     jython src/translator.py <username> <password> <connstring> <path-to-xslt>
 
     <username> - The username for connecting to the DB
     <password> - The password for the user above
     <connstring> - The connection string to connect to
     <path-to-xslt> - Path to the XSLT to use
-    """
+    """)
     return 1
 
 
@@ -60,11 +58,11 @@ def transform(xlst, xmldoc, docuuid):
         tFactory = TransformerFactory.newInstance()
         try:
             _transform = tFactory.newTransformer(StreamSource(JavaFile(xslt)))
-        except TransformerConfigurationException, tce:
-            print tce
-            print '*' * 70
-            print 'This is likely that your license file for saxon is '\
-                  'missing or that there is a genuine error in the XSLT'
+        except TransformerConfigurationException as tce:
+            print(tce)
+            print('*' * 70)
+            print('This is likely that your license file for saxon is '
+                  'missing or that there is a genuine error in the XSLT')
             sys.exit(1)
 
     _count = _count + 1
@@ -75,15 +73,15 @@ def transform(xlst, xmldoc, docuuid):
     os.close(fid)
 
     try:
-        print '\r + Processing document %s' % (docuuid,),
+        print('\r + Processing document %s' % (docuuid,),
         _transform.transform(StreamSource(StringReader(xmldoc)),
-                             StreamResult(JavaFile(path)))
+                             StreamResult(JavaFile(path))))
 
         f = open(path)
         store_document_result(f.read(), docuuid)
         f.close()
         os.remove(path)
-    except TransformerException, e:
+    except TransformerException as e:
         _errors = _errors + 1
         msg = "Error: %s\nDoc UUID: %s\n" % (e, docuuid)
         store_document_result("", docuuid, msg)
@@ -159,14 +157,14 @@ def get_connection(jdbc_url, driverName):
     """
     try:
         Class.forName(driverName).newInstance()
-    except Exception, msg:
-        print msg
+    except Exception as msg:
+        print(msg)
         sys.exit(-1)
 
     try:
         dbConn = DriverManager.getConnection(jdbc_url)
-    except SQLException, msg:
-        print msg
+    except SQLException as msg:
+        print(msg)
         sys.exit(-1)
 
     return dbConn
@@ -186,7 +184,7 @@ def run_conversion(username, password, connstring, xslt):
     # Before we connect to the remote DB we should check that we can actually
     # load the XSLT file.
     if not os.path.exists(xslt):
-        print "Can't find the XSLT file"
+        print("Can't find the XSLT file")
         sys.exit(1)
 
     url_parts = list(urlparse.urlparse(connstring))
@@ -196,8 +194,8 @@ def run_conversion(username, password, connstring, xslt):
     try:
         connection = get_connection(connstring, 'org.postgresql.Driver')
         _write_connection = get_connection(connstring, 'org.postgresql.Driver')
-    except zxJDBC.DatabaseError, e:
-        print e
+    except zxJDBC.DatabaseError as e:
+        print(e)
         sys.exit(1)
 
     offset = 0
@@ -236,8 +234,8 @@ if __name__ == "__main__":
     run_conversion(username, password, connstring, xslt)
 
     end = datetime.datetime.now()
-    print "\nRun completed %d documents in %s with %d errors" % (_count,
+    print("\nRun completed %d documents in %s with %d errors" % (_count,
                                                                  end - start,
-                                                                 _errors)
+                                                                 _errors))
     if _errors:
-        print "Please check errors.log for information on failures"
+        print("Please check errors.log for information on failures")
