@@ -2,19 +2,30 @@ version: 2.1
 jobs:
   build_ckan_28:
     working_directory: ~/ckanext-geodatagov
-    machine:
-      image: circleci/classic:201708-01
-    environment:
-      CKANVERSION=2.8
+    machine: true
     steps:
       - checkout
       - run:
-          name: install
-          command: bin/travis-build.bash
+          name: where am I
+          command: pwd && ls -la
       - run:
-          name: test
-          command: bin/travis-run.sh
-
+          name: Install Docker Compose
+          command: |
+            set -x
+            sudo curl -L "https://github.com/docker/compose/releases/download/1.25.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+            docker-compose --version
+      - run:
+          name: Start CKAN
+          command: |
+            docker-compose build
+            docker-compose up -d
+      - run:
+          name: Run ckanext-geodatagov Tests
+          command: |
+            cp ../../src/ckan/test-core.ini ../../ckan/test-core.ini
+            docker exec -it ckanext-geodatagov_ckanextgeodatagov_1 /bin/bash -c "nosetests --ckan --with-pylons=src_extensions/geodatagov/test.ini src_extensions/geodatagov/"
+  
   build_ckan_23:
     working_directory: ~/ckanext-geodatagov
     machine:
